@@ -2,6 +2,8 @@
 
 A Django web application for predicting diabetes risk using an Extreme Learning Machine (ELM) classifier trained on the Pima Indians Diabetes Dataset.
 
+![screenshot](./screenshot.png)
+
 ## Features
 
 - Real-time diabetes risk prediction via web interface
@@ -31,7 +33,7 @@ A Django web application for predicting diabetes risk using an Extreme Learning 
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/epsilonxe/ff68_elmdiabetes.git diabetes-predictor
 cd diabetes-predictor
 ```
 
