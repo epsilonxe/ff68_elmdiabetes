@@ -1,0 +1,278 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diabetes Prediction</title>
+    <script src="{% static 'js/tailwind.js' %}"></script>
+    <script src="{% static 'js/chart.min.js' %}"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .result-box {
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8">
+
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">Diabetes Risk Predictor</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-2">Enter patient data to predict diabetes risk using the ELM classifier.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            <!-- Left Column: Input Form -->
+            <div class="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-xl">
+                <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-100">Patient Data</h2>
+                <form id="prediction-form" class="space-y-4">
+                    {% csrf_token %}
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Pregnancies -->
+                        <div>
+                            <label for="pregnancies" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pregnancies</label>
+                            <input type="number" id="pregnancies" name="pregnancies" min="0" step="1" value="0" required
+                                   class="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+
+                        <!-- Glucose -->
+                        <div>
+                            <label for="glucose" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Glucose (mg/dL)</label>
+                            <input type="number" id="glucose" name="glucose" min="0" step="1" value="120" required
+                                   class="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+
+                        <!-- Blood Pressure -->
+                        <div>
+                            <label for="bloodPressure" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Blood Pressure (mm Hg)</label>
+                            <input type="number" id="bloodPressure" name="bloodPressure" min="0" step="1" value="70" required
+                                   class="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+
+                        <!-- Skin Thickness -->
+                        <div>
+                            <label for="skinThickness" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Skin Thickness (mm)</label>
+                            <input type="number" id="skinThickness" name="skinThickness" min="0" step="1" value="20" required
+                                   class="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+
+                        <!-- Insulin -->
+                        <div>
+                            <label for="insulin" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Insulin (mu U/ml)</label>
+                            <input type="number" id="insulin" name="insulin" min="0" step="1" value="80" required
+                                   class="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+
+                        <!-- BMI -->
+                        <div>
+                            <label for="bmi" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">BMI</label>
+                            <input type="number" id="bmi" name="bmi" min="0" step="0.1" value="25.0" required
+                                   class="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+
+                        <!-- DPF -->
+                        <div>
+                            <label for="dpf" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Diabetes Pedigree Function</label>
+                            <input type="number" id="dpf" name="dpf" min="0" step="0.001" value="0.5" required
+                                   class="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+
+                        <!-- Age -->
+                        <div>
+                            <label for="age" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Age (years)</label>
+                            <input type="number" id="age" name="age" min="0" step="1" value="30" required
+                                   class="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Enter 0 for unknown values (Glucose, BloodPressure, SkinThickness, Insulin, BMI). Missing values will be imputed automatically.</p>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="submit-btn"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 transition-all duration-300 ease-in-out transform hover:scale-105 mt-4">
+                        <span id="btn-text">Predict Diabetes Risk</span>
+                        <span id="btn-loader" class="hidden">Processing...</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Column: Results -->
+            <div class="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-xl flex flex-col">
+                <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-100">Prediction Result</h2>
+
+                <div id="result-container" class="text-center w-full flex-1 flex flex-col justify-center">
+                    <!-- Prediction Text -->
+                    <div id="result-box" class="result-box bg-gray-200 dark:bg-gray-600 p-6 rounded-lg mb-6 transform scale-95 opacity-50">
+                        <p class="text-lg text-gray-600 dark:text-gray-300 mb-2">Classification</p>
+                        <p id="result-text" class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white">--</p>
+                        <p id="result-probability" class="text-lg text-gray-600 dark:text-gray-300 mt-2">--</p>
+                    </div>
+
+                    <!-- Chart -->
+                    <div class="w-full h-64">
+                         <canvas id="predictionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('prediction-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const btnText = document.getElementById('btn-text');
+        const btnLoader = document.getElementById('btn-loader');
+        const resultTextBox = document.getElementById('result-text');
+        const resultProbability = document.getElementById('result-probability');
+        const resultBox = document.getElementById('result-box');
+        const chartCanvas = document.getElementById('predictionChart');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        let predictionChart;
+
+        function initializeChart() {
+            const ctx = chartCanvas.getContext('2d');
+            predictionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['No Diabetes', 'Diabetes'],
+                    datasets: [{
+                        label: 'Probability',
+                        data: [0, 0],
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.6)',   // Green for No Diabetes
+                            'rgba(239, 68, 68, 0.6)'   // Red for Diabetes
+                        ],
+                        borderColor: [
+                            'rgba(34, 197, 94, 1)',
+                            'rgba(239, 68, 68, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1.0,
+                            ticks: {
+                                color: '#9ca3af',
+                                callback: function(value) {
+                                    return (value * 100) + '%';
+                                }
+                            }
+                        },
+                        x: {
+                             ticks: {
+                                color: '#9ca3af'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return (context.raw * 100).toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateUI(data) {
+            resultTextBox.textContent = data.classification;
+            resultProbability.textContent = `Diabetes probability: ${(data.probability_diabetes * 100).toFixed(1)}%`;
+
+            resultBox.classList.remove('bg-green-100', 'dark:bg-green-900/50', 'bg-red-100', 'dark:bg-red-900/50', 'bg-gray-200', 'dark:bg-gray-600', 'scale-95', 'opacity-50');
+            resultTextBox.classList.remove('text-gray-800', 'dark:text-white', 'text-green-700', 'dark:text-green-300', 'text-red-700', 'dark:text-red-300');
+
+            if (data.prediction === 1) {
+                // Diabetes
+                resultBox.classList.add('bg-red-100', 'dark:bg-red-900/50');
+                resultTextBox.classList.add('text-red-700', 'dark:text-red-300');
+            } else {
+                // No Diabetes
+                resultBox.classList.add('bg-green-100', 'dark:bg-green-900/50');
+                resultTextBox.classList.add('text-green-700', 'dark:text-green-300');
+            }
+            resultBox.classList.add('scale-100', 'opacity-100');
+
+            predictionChart.data.datasets[0].data = [data.probability_no_diabetes, data.probability_diabetes];
+            predictionChart.update();
+        }
+
+        function setLoadingState(isLoading) {
+            if (isLoading) {
+                submitBtn.disabled = true;
+                btnText.classList.add('hidden');
+                btnLoader.classList.remove('hidden');
+            } else {
+                submitBtn.disabled = false;
+                btnText.classList.remove('hidden');
+                btnLoader.classList.add('hidden');
+            }
+        }
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            setLoadingState(true);
+
+            const data = {
+                pregnancies: document.getElementById('pregnancies').value,
+                glucose: document.getElementById('glucose').value,
+                bloodPressure: document.getElementById('bloodPressure').value,
+                skinThickness: document.getElementById('skinThickness').value,
+                insulin: document.getElementById('insulin').value,
+                bmi: document.getElementById('bmi').value,
+                dpf: document.getElementById('dpf').value,
+                age: document.getElementById('age').value,
+            };
+
+            try {
+                const response = await fetch('/predict/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Server error');
+                }
+
+                const result = await response.json();
+                updateUI(result);
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultTextBox.textContent = 'Error!';
+                resultProbability.textContent = '';
+                alert('An error occurred: ' + error.message);
+            } finally {
+                setLoadingState(false);
+            }
+        });
+
+        window.onload = () => {
+            initializeChart();
+        };
+    </script>
+</body>
+</html>
